@@ -1,0 +1,61 @@
+{
+  "system_name": "RE_BlueOcean_Swarm",
+  "version": "1.1.0",
+  "token_budget_optimization": true,
+  "target_geography": ["Sabaneta", "Envigado"],
+  "target_stage": "Sobre Planos / Ventas en Pozo / Pre-Lanzamientos",
+  "monetization_focus": "Low Monthly Fees (PropTech SaaS / Subscription / Micro-Services)",
+  "geography_strategy": {
+    "tier_1_core": ["Sabaneta", "Envigado"],
+    "tier_2_lookalike": ["Itagüí", "La Estrella", "Caldas", "Medellín", "Bello"]
+  },
+  "agents_manifest": {
+    "orchestrator": {
+      "file": "soul.md",
+      "trigger": "always_on",
+      "max_context_tokens": 1000
+    },
+    "brave_scout": {
+      "file": "agents/brave_scout.py",
+      "trigger": "cron_daily_0700",
+      "search_engine": "Brave_Search_API",
+      "output": "data/scout_results.json",
+      "search_terms": [
+        "site:lanzamientos \"sobre planos\" Sabaneta OR Envigado constructora",
+        "\"nuevo proyecto\" \"sobre planos\" \"Valle de Aburra\" apartamentos 2026 OR 2027",
+        "pre lanzamiento inmobiliario Sabaneta OR Envigado OR Itagui"
+      ]
+    },
+    "chatbot_interactor": {
+      "trigger_flag": "REQUIRES_CHATBOT_INTERACTION",
+      "execution_mode": "on_demand_lazy"
+    },
+    "social_listener": {
+      "trigger": "cron_weekly",
+      "target_platforms": ["Reddit", "Twitter/X", "Instagram Comments"]
+    },
+    "telegram_bot": {
+      "file": "bot/bot_listener.ps1",
+      "trigger": "on_logon_always_on",
+      "natural_language": true,
+      "llm_env": ["LLM_API_URL", "LLM_API_KEY", "LLM_MODEL"]
+    }
+  },
+  "data_contract_schema": [
+    "id",
+    "name",
+    "developer",
+    "zone",
+    "tier",
+    "opportunity_type",
+    "launch_date",
+    "typologies",
+    "value_proposition",
+    "detected_gap",
+    "status"
+  ],
+  "classification_protocol": {
+    "tier_1": { "tier": 1, "opportunity_type": "CORE_TARGET" },
+    "tier_2": { "tier": 2, "opportunity_type": "LOOK_A_LIKE" }
+  }
+}

@@ -1,0 +1,48 @@
+name: BlueOcean-RealEstate-Swarm
+version: "1.1"
+
+context_files:
+  - soul.md
+  - window_context.md
+  - MANIFEST.json
+
+agents:
+  orchestrator:
+    role: "Sintetizador y Evaluador de Oportunidades"
+    prompt_ref: "soul.md"
+
+  brave_scout:
+    role: "Buscador diario vía Brave Search API con clasificación por tiers"
+    file: "agents/brave_scout.py"
+    output: "data/scout_results.json"
+    tools:
+      - name: brave_search
+        api_key: "${BRAVE_SEARCH_API_KEY}"
+    schedule: "0 7 * * *"
+
+  social_listener:
+    role: "Extractor de dolores e hilos de conversión"
+    schedule: "0 12 * * 1"
+
+  chatbot_interactor:
+    role: "Completador de datos de constructoras"
+    trigger: "on_flag:REQUIRES_CHATBOT_INTERACTION"
+
+  telegram_bot:
+    role: "Interfaz de lenguaje natural y órdenes"
+    file: "bot/bot_listener.ps1"
+    trigger: "on_logon"
+
+workflow:
+  step_1:
+    agent: brave_scout
+    action: "Ejecutar búsquedas de lanzamientos y clasificar por tier (1=Core, 2=Look-a-Like)."
+  step_2:
+    agent: chatbot_interactor
+    action: "Completar fichas con REQUIRES_CHATBOT_INTERACTION."
+  step_3:
+    agent: social_listener
+    action: "Cruzar proyectos con conversación social en la zona."
+  step_4:
+    agent: orchestrator
+    action: "Generar reporte diario de Océanos Azules y enviarlo por Telegram."

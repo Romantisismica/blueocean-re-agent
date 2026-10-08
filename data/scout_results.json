@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-10-08T17:05:20",
+  "source": "brave_scout_v2",
+  "total_opportunities": 2,
+  "tier_1_count": 1,
+  "tier_2_count": 1,
+  "opportunities": [
+    {
+      "id": "RE-SCOUT-001",
+      "name": "kosmos",
+      "developer": "Por identificar",
+      "zone": "Sabaneta",
+      "tier": 1,
+      "opportunity_type": "CORE_TARGET",
+      "url": "https://umbral.co/proyectos/kosmos/",
+      "launch_date": null,
+      "typologies": null,
+      "value_proposition": null,
+      "snippet": "Lanzamiento Aptos Edición especial · Sabaneta - Avenida las Vegas · Lugares cercanos: Hospital Venancio Díaz, Metro La Estrella, Éxito, CC Mayorca, CC Aves María. Agenda tu cita virtual · Simula tu crédito · Main Menu · Visita interactiva · Planos ·",
+      "status": "REQUIRES_CHATBOT_INTERACTION",
+      "detected_gap": "Se requiere validación de amenities y propuesta de valor de bajo fee."
+    },
+    {
+      "id": "RE-SCOUT-002",
+      "name": "Constructora Marval Colombia",
+      "developer": "Constructora Marval Colombia",
+      "zone": "Valle de Aburrá (General)",
+      "tier": 2,
+      "opportunity_type": "LOOK_A_LIKE",
+      "url": "https://marval.com.co/",
+      "launch_date": null,
+      "typologies": null,
+      "value_proposition": null,
+      "snippet": "Conoce lo más reciente · Sobre planos, Invierte en tu futuro · <strong>Mi Casa Marval</strong> 2026 · No VIS · Lanzamiento · Calle 100, Barrio Buenavista, Localidad Riomar, Cartagena · Desde · 58m² · 2 · 58m² · Desde · $230 millones ·",
+      "status": "REQUIRES_CHATBOT_INTERACTION",
+      "detected_gap": "Se requiere validación de amenities y propuesta de valor de bajo fee."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+# Secretos y artefactos locales
+.env
+.env.local
+**/start-listener.ps1
+**/apply.ps1
+**/.env
+**/.env.*
+!.env.example
+!**/.env.local.example
+
+# Vercel
+dashboard/.vercel
+dashboard/.env*
+dashboard/node_modules
+dashboard/.next
+
+# Python
+__pycache__/
+*.pyc
+
+# Supabase CLI temp
+supabase/.temp/

@@ -1,0 +1,465 @@
+DIPLOMADO
+
+VIBECODING
+
+                                     Sesión 15:
+
+                   Monetiza tus aplicaciones y
+                                             servicios
+
+                                            Carolina Uribe Velasco
+   ¿Qué vamos
+
+a lograr en este sub-módulo?
+
+                                                                                                                                                                                                           DIPLOMADO
+
+                                                                                VIBECODING
+ Objetivos de esta clase
+
+Al finalizar esta clase, el estudiante será capaz de:
+
+     Diferenciar entre modelos tradicionales (SaaS, Licencia,
+     Freemium) y los modelos emergentes de la Era IA (Pago por
+     Uso/Créditos, Arbitraje de Inteligencia y Success Fee).
+
+     Seleccionar la estrategia de precios y monetización
+     adecuada según el nicho y el costo marginal de los
+     tokens.
+
+     Configurar una pasarela de pagos internacional como
+     Lemon Squeezy (Merchant of Record) para delegar la
+     carga legal e impositiva global.
+
+     Implementar Guardrails técnicos (límites de caracteres,
+     validación de saldos y Kill Switches) para proteger la API
+     de ataques de inyección y abusos de costo.
+
+                                                                 DIPLOMADO
+
+                                                                 VIBECODING
+DIPLOMADO
+
+VIBECODING
+
+      En 2026, el dinero no está en el martillo, está en saber dónde golpear.
+
+            El código tiende a bajo costo gracias a herramientas como Cursor y
+            Windsurf.
+            El valor reside en la velocidad de solución y la arquitectura del flujo.
+            Vibe-Tip: No cobres por horas de programación, cobra por el dolor que
+            eliminas.
+DIPLOMADO
+VIBECODING
+
+        ¿Qué valor estamos cobrando?
+
+Dolor del  Resultado  Valor
+cliente    medible    capturado
+
+El código tiende a ser barato gracias a herramientas como Cursor y Windsurf. El
+valor está en la velocidad de solución y en la arquitectura
+del flujo. Cobra por el dolor que eliminas, no por las horas de programación.
+
+No vendas horas: vende resultados.
+DIPLOMADO
+VIBECODING
+
+ Modelos de monetización:
+ tradicionales y emergentes
+
+Tradicionales                                   Era IA
+
+SaaS:                                  Pago por uso / créditos:
+
+pago recurrente por acceso             cobro según consumo
+
+Licencia:                          VS  Arbitraje de inteligencia:
+
+pago por uso o propiedad               capturar valor con capacidades de IA
+
+Freemium:                              Success FEE:
+
+acceso básico y conversión a pago      cobrar cuando se logra el resultado
+
+El modelo debe seguir la forma en que el cliente recibe valor.
+Cómo elegir
+el modelo de cobro
+
+1.                  2.              3.                4.
+
+¿Qué resultado      ¿Con qué        ¿Cuál es el        ¿Qué modelo
+                    frecuencia usa  costo marginal     protege el
+compra el cliente?  el producto?    de los tokens?     margen?
+
+Pago único:         Créditos:       Suscripción:    Success fee:
+valor               consumo         valor           resultado
+concentrado         variable        recurrente      verificable
+
+El precio debe sostener el valor y el margen.
+Diseñar el precio para convertir
+
+        Bueno                   Mejor                 Premium                Haz visible el precio
+
+Ruta de conversión                                                    El precio premium
+                                                                      funciona cuando
+                                                                      el resultado
+                                                                      lo justifica.
+
+Propuesta única     Muestra el  Explica el beneficio  Permite probar      Añade    Una sola llamada
+  para un dolor     producto        con números            el valor   testimonios       a la acción
+     concreto
+Cobrar internacionalmente
+sin cargar con la burocracia
+
+Cliente  Lemon Squeezy:                        Producto
+         Merchant of Record
+
+         Gestiona impuestos globales
+         IVA/VAT
+         Cumplimiento legal y financiero
+
+         Delegar la operación
+         permite concentrarse en el producto.
+Protege el margen antes de llamar a la IA
+
+1              2                3                4
+
+Validar firma  Consultar saldo  Limitar input a  Llamar a la IA  Kill Switches
+  del pago      en Supabase     500 caracteres
+                                                            IA      Detén el flujo
+     Crypto                                                          ante abuso,
+                                                                  saldo inválido o
+                                                                 costo inesperado.
+
+               Supabase         Code
+
+               Primero valida. Después procesa.
+DIPLOMADO
+
+VIBECODING
+
+       Los principios para hacer apps virales
+
+     Cómo monetizar como solopreneur en
+                                     esta era
+DIPLOMADO
+
+VIBECODING
+
+31 principios para
+           construir una app viral
+
+       Adaptación didáctica de los principios de Marc Lou y otros solopreneurs
+       para productos digitales y apps con IA.
+
+                        La viralidad no se diseña con más funciones:
+                        se construye con claridad, valor, conversión y distribución.
+
+Producto         Experiencia    Monetización                                          Distribución
+que se entiende  que convierte  que protege                                           que se comparte
+                                el margen
+
+Buenas prácticas para decidir qué construir, cómo cobrar y cómo lograr que la gente lo recomiende.
+DIPLOMADO   1. Producto que se entiende
+                   y se recuerda
+VIBECODING
+
+            Una idea por pantalla:  Una sola función principal:  Explica el producto  Vende el resultado
+                una pantalla, un    sé conocido por resolver un      en menos de         humano, no la
+                      mensaje                                         10 palabras        funcionalidad
+                                                 problema
+
+                Usa números             Escribe titulares        Usa una identidad        Elige un nombre
+            concretos en lugar      simples, emocionales         visual contenida:    que la gente ya pueda
+                                                                  fondo, texto y un
+                de adjetivos             y memorables                                  entender y recordar
+                                                                   color de acción
+
+                                Si el usuario no lo entiende rápido,
+                                no lo compartirá.
+DIPLOMADO
+
+VIBECODING
+
+ 2. La experiencia debe demostrar el valor
+
+    Secuencia de conversión: de la empatía a la acción.
+
+   1                      2                       3                                4                                  5
+
+Empatiza con           Muestra el              Permite probar                   Explica el                         Indica el
+el problema            producto                el valor                         resultado                          siguiente paso
+
+Habla del dolor real.  Muestra. no describas.  Que lo prueben.                  Muestra el antes y                 Una sola acción clara
+Conecta en segundos    Una vista vale más que  El valor se siente               después.                           que los mueve ahora
+con lo que importa.    100 palabras.           cuando se usa.                   Resultados concretos.              mismo.
+
+Principios que convierten                                                       Ejemplos de CTA (una sola acción)
+
+       La sección inicial debe vender la idea por sí sola.                                 Analizar mi sitio
+        Mostrar es más potente que describir.                                              Generar mi diagnóstico
+       Pedir el pago antes de exigir demasiados datos ayuda a validar.                     Probar el flujo
+       La llamada a la acción debe ser única y decir exactamente qué ocurrirá.
+       Evita palabras débiles y usa afirmaciones concretas.
+
+                       Primero demuestra. Después pide compromiso.
+DIPLOMADO
+
+VIBECODING
+
+ 3. Monetización que protege el margen
+
+    Patrones de los usuarios aplicados al costo marginal de los tokens
+
+   Decisiones clave                                                     ¿El resultado genera valor claro y
+                                                                              medible para el usuario?
+
+   No regales consumo costoso                             SÍ                                                 NO
+
+1  por defecto: valida disposición                       El costo marginal                                  Alto costo marginal
+                                                         lo permite y el uso                                o uso esporádico /
+   de pago                                               será recurrente                                    bajo valor percibido
+
+2  Haz visible el precio desde
+   el inicio
+
+3  Usa tres opciones comparables:                                                                           No regales.
+   Bueno, Mejor y Premium                                                                                   Valida disposición
+                                     Bueno               Mejor                Premium                       de pago primero.
+
+                                     Resultado esencial  Más resultados       Máximo resultado
+
+                                     a costo eficiente   y mejor experiencia  y prioridad
+
+   Elige pago único, créditos o
+
+4  suscripción según recurrencia,
+
+   uso y costo marginal                      + Valor                          + frecuencia      = costo                           estrategia
+                                                                                 de uso                                           de cobro
+                                            percibido                                           marginal
+
+5  Un precio premium es válido       La suscripción no es automática:
+   cuando el resultado lo justifica  úsala cuando el valor y el costo
+                                     sean recurrentes.                        El precio debe sostener el valor y el margen.
+DIPLOMADO
+
+VIBECODING
+
+ 4. La viralidad necesita distribución y prueba
+
+    RUTA DE AMPLIFICACIÓN
+
+    Titular           Imagen de enlace       Producto           Ola o conversación                          Prueba                    Compartir
+memorable                 que invite a       diferente                 existente                            social
+                            hacer clic
+
+     El cierre de la    La imagen OG debe    Usa tendencias y    Toma el lenguaje      Muestra al fundador  Consigue testimonios        Sorprende con
+  página debe ser          funcionar como    problemas que ya   real de los clientes.    y su experiencia.  antes de llevar tráfico.  algo que la gente
+digno de compartir.
+                      miniatura de YouTube.   tienen atención.                                                                          no haya visto.
+
+                      La gente comparte lo que entiende, siente o quiere mostrar.
+DIPLOMADO
+
+VIBECODING
+
+  Recapitulemos: Este es el checklist de una app viral
+
+01               02             03               04                  05           06
+
+¿Resuelve un     ¿Se explica    ¿Se puede        ¿El precio refleja  ¿Existe una  ¿Hay prueba
+dolor concreto?  en una frase?  demostrar antes  el valor y cubre    sola acción  social y un motivo
+                                de vender?       el costo de IA?     siguiente?   para compartir?
+
+    Dolor        Resultado Demostración              Cobro           Confianza    Compartir
+
+    Viral no significa gratuito ni masivo: significa fácil de entender,
+    valioso de usar y natural de recomendar.
+
+                                                                                                                                                                                          Adaptado de los 31 principios de Marc Lou.
+DIPLOMADO
+
+VIBECODING
+
+      Buenas y malas prácticas al monetizar
+
+                  Qué hacer y qué NO hacer
+DIPLOMADO
+
+VIBECODING
+
+    Caso de Terror - La "Hemorragia de Tokens"
+
+      ¿Por qué fallan los modelos? Veamos el caso viral de Leo Martinez (@leojr94_)
+
+                                  El Error: Hardcodear secretos y
+                                  no validar Webhooks.
+
+                                Consecuencia: Factura de
+                                $12,000 USD en OpenAI en una
+                                sola noche por robo de API Keys.
+
+                                        Regla de Oro: "Si tu API Key aparece en
+                                        el código que el navegador lee, ya no es
+                                        tuya."
+DIPLOMADO
+
+VIBECODING
+
+    Caso de Resiliencia - Kontigo (2025)
+
+      Transparencia radical ante la crisis.
+
+                                  Incidente: Fallo de seguridad de
+                                  US$340,000.
+
+                                   Acción: Comunicación inmediata y
+                                   reembolso del 100% a los afectados.
+
+                                   Lección: La transparencia es el
+                                   activo más valioso de un Vibe-
+                                   Entrepreneur.
+DIPLOMADO
+
+VIBECODING
+
+   Validación de "Triple Check" en tu flujo
+
+           Checklist Obligatorio:
+           Créditos: if (user.credits > 0)
+           Firma: if (webhook.signature == valid) (Evita pagos falsos).
+           Sanitización: if (input.length < limit) (Evita inyección de prompts).
+           Nota: Implementa un Kill Switch automático si el consumo sube un 500%
+           en una hora.
+DIPLOMADO
+
+VIBECODING
+
+   Implementación con Lemon Squeezy
+
+      El "Merchant of Record" (MoR).
+           Beneficios:
+           Manejo de impuestos globales (IVA/VAT) por ti.
+           Cumplimiento legal y financiero automático.
+
+      Estrategia: Usa Lemon Squeezy para que tu única preocupación sea el
+      producto, no la burocracia. Tu objetivo siempre en las pasarelas es medir el
+      Monthly Recurring Revenue o ingreso mensual recurrente después de
+      impuestos y comisiones.
+DIPLOMADO
+
+VIBECODING
+
+   Blinda, blinda, blinda.
+
+      Blindando el Flujo de tu app
+      Modificaciones Clave:
+
+           Inserción de nodos Crypto para validar firmas de pago
+           Nodo Supabase previo a la IA para verificar saldo
+           Nodo Code para limitar el input a 500 caracteres
+           Armamos un enjambre de agentes buscando vulnerabilidades en tus
+           propias startups con escaneos diarios (cronjob).
+DIPLOMADO
+
+VIBECODING
+
+           ¿Cuánto cobro por mis servicios?
+
+    Tarifas de 0 a experto de un Vibecoder
+DIPLOMADO
+
+������ VIBECODING
+        Tarifario Global Vibecoding 2026 (Latam, USA,
+    Europa)
+
+      1. Tarifa por Hora (Auditoría y Desarrollo Agéntico)
+      Se aplica para resolución de bugs complejos, optimización de prompts o blindaje de
+      seguridad.
+
+Nivel de Experto  Latinoamérica (USD)     USA (USD)      Europa (EUR)
+Vibecoder Junior        $30 - $50 /hr   $80 - $120 /hr   €60 - €90 /hr
+Vibecoder Senior       $80 - $150 /hr  $200 - $450 /hr  €150 - €350 /hr
+Arquitecto de IA           $180+ /hr
+                                           $500+ /hr        €400+ /hr
+
+Vibe-Insight: En USA y Europa, se valora la eliminación de fricción legal. Si sabes configurar
+      Lemon Squeezy (MoR) y cumplimiento GDPR/PCI-DSS, puedes cobrar el rango alto.
+DIPLOMADO
+
+VIBECODING
+
+    Proyectos "Llave en Mano" (Setup de Sistemas)
+
+      Venta de una solución cerrada (ej. el LinkedIn Ghoster Pro blindado y monetizado).
+
+      Tipo de Proyecto    Latinoamérica              USA              Europa
+   Micro-Agente (MVP)      $800 - $2,000    $3,000 - $7,000    €2,500 - €6,000
+Ecosistema Multi-Agente   $3,500 - $8,000  $15,000 - $40,000  €12,000 - €35,000
+
+     Enterprise AI Layer       $10,000+          $50,000+           €45,000+
+DIPLOMADO
+
+VIBECODING
+
+    Consultoría Estratégica y Diagnóstico
+
+      Sesiones de 1 hora para diseñar el "Blueprint" del flujo antes de construir.
+           Latam: $50 - $250 USD. (Foco en optimización de costos operativos).
+           USA: $150 - $800 USD. (Foco en velocidad de escala y ventaja competitiva).
+           Europa: €250 - €600 EUR. (Foco en eficiencia, ética y seguridad de datos).
+DIPLOMADO
+
+VIBECODING
+
+    Consultoría Estratégica y Diagnóstico
+
+      Sesiones de 1 hora para diseñar el "Blueprint" del flujo antes de construir.
+           Latam: $50 - $250 USD. (Foco en optimización de costos operativos).
+           USA: $150 - $800 USD. (Foco en velocidad de escala y ventaja competitiva).
+           Europa: €250 - €600 EUR. (Foco en eficiencia, ética y seguridad de datos).
+DIPLOMADO
+
+VIBECODING
+
+    Capacitación y "Vibe-Training" para Equipos
+
+     Enseñar a departamentos de marketing o ventas a crear y usar sus
+     propios agentes. Valores de inversión para Workshop (Media Jornada)
+     según empresa, sector y número de participantes desde:
+
+           Latam: $1,200 USD.
+           USA: $3,000 USD.
+           Europa: €3,000 EUR.
+DIPLOMADO
+
+������ VIBECODING
+        Justificación de Precios: La Fórmula ROI Global
+           Para cerrar clientes en mercados de alto valor (USA/EU), tu propuesta debe
+           usar la Matriz de Ahorro de Capital:
+
+                                             Ojo:
+                                             En USA: Un desarrollo tradicional de 3 meses cuesta $60,000 USD. Tú lo entregas en 2 semanas por
+                                             $15,000 USD. Ahorro neto: $45,000 USD + 2.5 meses de ventaja competitiva.
+                                             En Europa: El cumplimiento normativo (GDPR) es una pesadilla. Si vendes el flujo con blindaje de datos
+                                             (anónimos) y Lemon Squeezy, el valor es la paz mental jurídica.
+DIPLOMADO
+
+VIBECODING
+
+    Cláusulas de "Vibe-Seguridad" (Para añadir a tus contratos)
+
+      Para evitar casos como el de Leo Martinez o Kontigo, tus contratos internacionales
+      deben incluir:
+
+           Límite de Responsabilidad de API: El cliente es responsable de los costos
+           excedentes si no se activan los Hard Limits recomendados por el consultor.
+           Propiedad Intelectual del Flujo: El cliente recibe la licencia de uso, pero el
+           desarrollador mantiene la propiedad del "Motor Agéntico" (a menos que se
+           pague un Buyout del 300%).
+           Garantía de Blindaje: Incluye auditoría de firmas HMAC (Hash-based Message
+           Authentication Code) como SHA256 (El mismo estándar que usa Bitcoin y
+           Ethereum) y sanitización de inputs como estándar en todos los niveles.
+
