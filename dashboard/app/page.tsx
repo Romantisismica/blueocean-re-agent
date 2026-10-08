@@ -1,20 +1,28 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Waves,
+  Broadcast,
+  Buildings,
+  MapPin,
+  Stack,
+  WarningCircle,
+  ArrowsClockwise,
+  CurrencyCircleDollar,
+  Sparkle,
+} from "@phosphor-icons/react";
+import { supabase } from "../lib/supabaseClient";
 
 type Opp = {
   id: string;
-  external_id: string | null;
   name: string;
   developer: string | null;
   zone: string | null;
   tier: number | null;
   opportunity_type: string | null;
   status: string | null;
-  classification: string | null;
   url: string | null;
-  detected_gap: string | null;
   last_seen_at: string;
 };
 
@@ -27,232 +35,284 @@ type Kpi = {
   zonas: number;
 };
 
-type Run = {
-  id: string;
-  ran_at: string;
-  total: number;
-  tier1_count: number;
-  tier2_count: number;
-};
+type Run = { id: string; ran_at: string; total: number; tier1_count: number; tier2_count: number };
+type Ocean = { id: number; name: string; description: string | null; monthly_fee: string | null; variable_fee: string | null };
 
-type Ocean = {
-  id: number;
-  name: string;
-  description: string | null;
-  monthly_fee: string | null;
-  variable_fee: string | null;
-};
-
-const card: React.CSSProperties = {
-  background: '#121c30',
-  border: '1px solid #22314f',
-  borderRadius: 14,
-  padding: 16,
-};
+const ICON = { weight: "duotone" as const, size: 20 };
 
 export default function Page() {
   const [kpis, setKpis] = useState<Kpi | null>(null);
   const [opps, setOpps] = useState<Opp[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [oceans, setOceans] = useState<Ocean[]>([]);
-  const [filter, setFilter] = useState<'all' | '1' | '2'>('all');
+  const [filter, setFilter] = useState<"all" | "1" | "2">("all");
   const [live, setLive] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
     const [k, o, r, b] = await Promise.all([
-      supabase.from('v_kpis').select('*').maybeSingle(),
-      supabase
-        .from('opportunities')
-        .select('*')
-        .order('last_seen_at', { ascending: false })
-        .limit(200),
-      supabase.from('scout_runs').select('*').order('ran_at', { ascending: false }).limit(12),
-      supabase.from('blue_oceans').select('*').order('id'),
+      supabase.from("v_kpis").select("*").maybeSingle(),
+      supabase.from("opportunities").select("*").order("last_seen_at", { ascending: false }).limit(200),
+      supabase.from("scout_runs").select("*").order("ran_at", { ascending: false }).limit(12),
+      supabase.from("blue_oceans").select("*").order("id"),
     ]);
     const err = k.error || o.error || r.error || b.error;
-    if (err) setError(err.message);
+    setError(err ? err.message : null);
     if (k.data) setKpis(k.data as Kpi);
     if (o.data) setOpps(o.data as Opp[]);
     if (r.data) setRuns(r.data as Run[]);
     if (b.data) setOceans(b.data as Ocean[]);
+    setLoading(false);
   }
 
   useEffect(() => {
     load();
     const channel = supabase
-      .channel('realtime-blueocean')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'opportunities' }, () => load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scout_runs' }, () => load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, () => load())
-      .subscribe((status) => setLive(status === 'SUBSCRIBED'));
+      .channel("realtime-blueocean")
+      .on("postgres_changes", { event: "*", schema: "public", table: "opportunities" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "scout_runs" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, () => load())
+      .subscribe((s) => setLive(s === "SUBSCRIBED"));
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
 
   const filtered = useMemo(
-    () => (filter === 'all' ? opps : opps.filter((o) => String(o.tier) === filter)),
+    () => (filter === "all" ? opps : opps.filter((o) => String(o.tier) === filter)),
     [opps, filter]
   );
 
-  const totalRuns = runs.reduce((a, r) => a + (r.total || 0), 0);
-
   return (
-    <main style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 26 }}>🌊 BlueOcean RE · Dashboard</h1>
-          <p style={{ margin: '4px 0 0', color: '#8fa3c4' }}>
-            Océanos Azules inmobiliarios · Sabaneta &amp; Envigado
-          </p>
-        </div>
-        <span
-          style={{
-            fontSize: 12,
-            padding: '6px 12px',
-            borderRadius: 999,
-            background: live ? '#10351f' : '#3a1d1d',
-            color: live ? '#4ade80' : '#f87171',
-            border: `1px solid ${live ? '#1c5c34' : '#5c2222'}`,
-          }}
-        >
-          {live ? '● Tiempo real activo' : '○ Conectando…'}
-        </span>
-      </header>
-
-      {error && (
-        <p style={{ ...card, borderColor: '#5c2222', color: '#fca5a5', marginTop: 16 }}>
-          Error Supabase: {error}. Verifica las variables de entorno.
-        </p>
-      )}
-
-      {/* KPIs */}
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: 12,
-          marginTop: 20,
-        }}
-      >
-        <Kpi label="Oportunidades" value={kpis?.total_oportunidades ?? opps.length} />
-        <Kpi label="Tier 1 (Core)" value={kpis?.tier1 ?? '—'} accent="#4ade80" />
-        <Kpi label="Tier 2 (Look-a-Like)" value={kpis?.tier2 ?? '—'} accent="#60a5fa" />
-        <Kpi label="Data completa" value={kpis?.completas ?? '—'} />
-        <Kpi label="Requieren interacción" value={kpis?.requieren_interaccion ?? '—'} accent="#fbbf24" />
-        <Kpi label="Zonas" value={kpis?.zonas ?? '—'} />
-      </section>
-
-      {/* Océanos Azules */}
-      <section style={{ marginTop: 28 }}>
-        <h2 style={{ fontSize: 18 }}>🟦 3 Océanos Azules en monitoreo</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
-          {oceans.map((o) => (
-            <div key={o.id} style={card}>
-              <strong>
-                #{o.id} · {o.name}
-              </strong>
-              <p style={{ color: '#9fb2d0', fontSize: 13, minHeight: 40 }}>{o.description}</p>
-              <div style={{ fontSize: 13, color: '#cdd9ec' }}>
-                <div>💵 {o.monthly_fee}</div>
-                <div>📈 {o.variable_fee}</div>
-              </div>
-            </div>
-          ))}
-          {oceans.length === 0 && <p style={{ color: '#8fa3c4' }}>Sin catálogo. Ejecuta `seed.sql`.</p>}
-        </div>
-      </section>
-
-      {/* Corridas del scout */}
-      <section style={{ marginTop: 28 }}>
-        <h2 style={{ fontSize: 18 }}>📡 Corridas del scout ({totalRuns} hallazgos acumulados)</h2>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 90, ...card }}>
-          {runs
-            .slice()
-            .reverse()
-            .map((r) => (
-              <div key={r.id} title={`${new Date(r.ran_at).toLocaleString()} · ${r.total}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 2 }}>
-                <div style={{ height: Math.max(4, (r.tier2_count || 0) * 4), background: '#60a5fa', borderRadius: 3 }} />
-                <div style={{ height: Math.max(4, (r.tier1_count || 0) * 4), background: '#4ade80', borderRadius: 3 }} />
-              </div>
-            ))}
-          {runs.length === 0 && <span style={{ color: '#8fa3c4' }}>Sin ejecuciones registradas.</span>}
-        </div>
-      </section>
-
-      {/* Tabla de oportunidades */}
-      <section style={{ marginTop: 28 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 18 }}>🏙️ Oportunidades</h2>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {(['all', '1', '2'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                style={{
-                  cursor: 'pointer',
-                  padding: '6px 12px',
-                  borderRadius: 8,
-                  border: '1px solid #22314f',
-                  background: filter === f ? '#1c2b47' : 'transparent',
-                  color: '#e6edf7',
-                }}
-              >
-                {f === 'all' ? 'Todos' : `Tier ${f}`}
-              </button>
-            ))}
+    <div className="relative mx-auto max-w-[1200px] px-4 pb-16 pt-5 sm:px-6">
+      {/* Header */}
+      <header className="glass glass-edge sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl px-4 py-3">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-xl bg-accent/15 text-accent ring-1 ring-inset ring-white/10">
+            <Waves {...ICON} size={22} />
+          </span>
+          <div className="leading-tight">
+            <h1 className="text-[15px] font-semibold tracking-tight">BlueOcean RE</h1>
+            <p className="text-xs text-white/45">Sabaneta &amp; Envigado · Océanos Azules</p>
           </div>
         </div>
 
-        <div style={{ ...card, marginTop: 12, overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={load}
+            className="glass hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs text-white/70 transition hover:text-white active:translate-y-px sm:flex"
+          >
+            <ArrowsClockwise size={14} weight="bold" />
+            Actualizar
+          </button>
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs ring-1 ring-inset ${
+              live
+                ? "bg-accent/10 text-accent ring-accent/25"
+                : "bg-white/5 text-white/50 ring-white/10"
+            }`}
+          >
+            <span className={`size-2 rounded-full ${live ? "bg-accent live-dot" : "bg-white/40"}`} />
+            {live ? "Tiempo real" : "Conectando…"}
+          </span>
+        </div>
+      </header>
+
+      {/* Intro */}
+      <section className="mt-8 mb-6">
+        <h2 className="max-w-[22ch] text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">
+          Inteligencia de <span className="italic text-accent">océanos azules</span> inmobiliarios
+        </h2>
+        <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-white/55">
+          Rastreo diario de proyectos sobre planos, clasificados por prioridad y con histórico
+          consultable. Los datos llegan desde Supabase y se actualizan en vivo.
+        </p>
+      </section>
+
+      {error && (
+        <div className="glass mb-6 flex items-start gap-3 rounded-2xl border-red-400/20 p-4 text-sm text-red-200/90">
+          <WarningCircle size={20} weight="duotone" className="mt-0.5 shrink-0" />
+          <div>
+            <strong className="font-medium">Error de conexión a Supabase.</strong>
+            <p className="text-red-200/70">{error}. Verifica las variables de entorno.</p>
+          </div>
+        </div>
+      )}
+
+      {/* KPIs */}
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <KpiTile label="Oportunidades" value={kpis?.total_oportunidades ?? opps.length} loading={loading} />
+        <KpiTile label="Tier 1 · Core" value={kpis?.tier1 ?? "—"} accent loading={loading} />
+        <KpiTile label="Tier 2 · Look-a-like" value={kpis?.tier2 ?? "—"} loading={loading} />
+        <KpiTile label="Data completa" value={kpis?.completas ?? "—"} loading={loading} />
+        <KpiTile label="Requieren interacción" value={kpis?.requieren_interaccion ?? "—"} warn loading={loading} />
+        <KpiTile label="Zonas" value={kpis?.zonas ?? "—"} loading={loading} />
+      </section>
+
+      {/* Océanos */}
+      <SectionTitle icon={<Sparkle {...ICON} />} title="3 Océanos Azules en monitoreo" />
+      <section className="grid gap-4 md:grid-cols-3">
+        {oceans.map((o) => (
+          <article key={o.id} className="glass tilt relative overflow-hidden rounded-2xl p-5">
+            <div className="absolute -right-8 -top-8 size-28 rounded-full bg-accent/10 blur-2xl" />
+            <div className="flex items-center gap-2 text-xs text-white/45">
+              <span className="font-mono">#{o.id}</span>
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+            <h3 className="mt-3 text-[15px] font-semibold leading-snug">{o.name}</h3>
+            <p className="mt-2 min-h-[40px] text-xs leading-relaxed text-white/50">{o.description}</p>
+            <div className="mt-4 space-y-1.5 border-t border-white/10 pt-3 text-xs">
+              <div className="flex items-center gap-2 text-white/75">
+                <CurrencyCircleDollar size={15} weight="duotone" className="text-accent" />
+                <span className="font-mono">{o.monthly_fee}</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/55">
+                <Broadcast size={15} weight="duotone" />
+                <span className="font-mono">{o.variable_fee}</span>
+              </div>
+            </div>
+          </article>
+        ))}
+        {oceans.length === 0 && !loading && <EmptyState text="Sin catálogo. Ejecuta seed.sql." />}
+      </section>
+
+      {/* Corridas */}
+      <SectionTitle icon={<Stack {...ICON} />} title="Corridas del scout" />
+      <section className="glass rounded-2xl p-5">
+        {runs.length === 0 ? (
+          <EmptyState text="Sin ejecuciones registradas." />
+        ) : (
+          <div className="flex h-28 items-end gap-2">
+            {runs
+              .slice()
+              .reverse()
+              .map((r) => (
+                <div
+                  key={r.id}
+                  title={`${new Date(r.ran_at).toLocaleString()} · ${r.total} hallazgos`}
+                  className="group flex flex-1 flex-col items-stretch justify-end gap-0.5"
+                >
+                  <div
+                    className="rounded-t bg-cool/70 transition group-hover:bg-cool"
+                    style={{ height: Math.max(3, (r.tier2_count || 0) * 5) }}
+                  />
+                  <div
+                    className="rounded-t bg-accent/80 transition group-hover:bg-accent"
+                    style={{ height: Math.max(4, (r.tier1_count || 0) * 5) }}
+                  />
+                </div>
+              ))}
+          </div>
+        )}
+        <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-3 text-xs text-white/45">
+          <Legend color="bg-accent" label="Tier 1" />
+          <Legend color="bg-cool" label="Tier 2" />
+          <span className="ml-auto font-mono">
+            {runs.reduce((a, r) => a + (r.total || 0), 0)} hallazgos acumulados
+          </span>
+        </div>
+      </section>
+
+      {/* Oportunidades */}
+      <SectionTitle
+        icon={<Buildings {...ICON} />}
+        title="Oportunidades"
+        right={
+          <div className="glass flex gap-1 rounded-full p-1">
+            {(["all", "1", "2"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-full px-3 py-1 text-xs transition ${
+                  filter === f ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                {f === "all" ? "Todos" : `Tier ${f}`}
+              </button>
+            ))}
+          </div>
+        }
+      />
+      <section className="glass overflow-hidden rounded-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr style={{ textAlign: 'left', color: '#8fa3c4' }}>
-                <th style={{ padding: '8px 6px' }}>Proyecto</th>
-                <th style={{ padding: '8px 6px' }}>Zona</th>
-                <th style={{ padding: '8px 6px' }}>Tier</th>
-                <th style={{ padding: '8px 6px' }}>Estado</th>
-                <th style={{ padding: '8px 6px' }}>Detectado</th>
+              <tr className="text-left text-xs uppercase tracking-wide text-white/40">
+                <th className="px-5 py-3 font-medium">Proyecto</th>
+                <th className="px-5 py-3 font-medium">Zona</th>
+                <th className="px-5 py-3 font-medium">Tier</th>
+                <th className="px-5 py-3 font-medium">Estado</th>
+                <th className="px-5 py-3 font-medium">Detectado</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((o) => (
-                <tr key={o.id} style={{ borderTop: '1px solid #1b2740' }}>
-                  <td style={{ padding: '8px 6px', maxWidth: 320 }}>
-                    {o.url ? (
-                      <a href={o.url} target="_blank" rel="noreferrer" style={{ color: '#7cc4ff' }}>
-                        {o.name}
-                      </a>
-                    ) : (
-                      o.name
-                    )}
-                  </td>
-                  <td style={{ padding: '8px 6px' }}>{o.zone ?? '—'}</td>
-                  <td style={{ padding: '8px 6px' }}>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: 999,
-                        background: o.tier === 1 ? '#10351f' : '#152a47',
-                        color: o.tier === 1 ? '#4ade80' : '#60a5fa',
-                      }}
-                    >
-                      T{o.tier ?? '?'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '8px 6px', color: o.status === 'DATA_COMPLETE' ? '#4ade80' : '#fbbf24' }}>
-                    {o.status ?? '—'}
-                  </td>
-                  <td style={{ padding: '8px 6px', color: '#8fa3c4' }}>
-                    {new Date(o.last_seen_at).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
+              {loading &&
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="border-t border-white/5">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <td key={j} className="px-5 py-3.5">
+                        <div className="h-3 w-24 animate-pulse rounded bg-white/8" />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              {!loading &&
+                filtered.map((o) => (
+                  <tr
+                    key={o.id}
+                    className="border-t border-white/5 transition hover:bg-white/[0.035]"
+                  >
+                    <td className="max-w-[320px] px-5 py-3.5">
+                      {o.url ? (
+                        <a
+                          href={o.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium text-white/90 underline-offset-4 hover:text-accent hover:underline"
+                        >
+                          {o.name}
+                        </a>
+                      ) : (
+                        <span className="font-medium text-white/90">{o.name}</span>
+                      )}
+                      <div className="mt-0.5 text-xs text-white/40">{o.developer ?? "Por identificar"}</div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 text-white/70">
+                        <MapPin size={14} weight="duotone" />
+                        {o.zone ?? "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                          o.tier === 1
+                            ? "bg-accent/10 text-accent ring-accent/25"
+                            : "bg-cool/10 text-cool ring-cool/25"
+                        }`}
+                      >
+                        T{o.tier ?? "?"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`text-xs ${
+                          o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"
+                        }`}
+                      >
+                        {o.status === "DATA_COMPLETE" ? "Completo" : "Requiere interacción"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-mono text-xs text-white/40">
+                      {new Date(o.last_seen_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} style={{ padding: 16, color: '#8fa3c4' }}>
-                    Sin oportunidades. Ejecuta el scout o revisa la conexión.
+                  <td colSpan={5} className="px-5 py-12 text-center text-white/45">
+                    <EmptyState text="Sin oportunidades. Ejecuta el scout." />
                   </td>
                 </tr>
               )}
@@ -261,18 +321,76 @@ export default function Page() {
         </div>
       </section>
 
-      <footer style={{ marginTop: 32, color: '#5f7398', fontSize: 12 }}>
-        BlueOcean RE Agent · datos desde Supabase · actualización en tiempo real vía Realtime
+      <footer className="mt-10 text-center text-xs text-white/30">
+        BlueOcean RE Agent · datos desde Supabase · actualización en vivo vía Realtime
       </footer>
-    </main>
+    </div>
   );
 }
 
-function Kpi({ label, value, accent }: { label: string; value: number | string; accent?: string }) {
+/* ------------------------------------------------------------------ */
+
+function KpiTile({
+  label,
+  value,
+  accent,
+  warn,
+  loading,
+}: {
+  label: string;
+  value: number | string;
+  accent?: boolean;
+  warn?: boolean;
+  loading?: boolean;
+}) {
   return (
-    <div style={card}>
-      <div style={{ fontSize: 12, color: '#8fa3c4' }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: accent ?? '#e6edf7' }}>{value}</div>
+    <div className="glass tilt relative overflow-hidden rounded-2xl p-4">
+      <div className="absolute -right-6 -top-6 size-16 rounded-full bg-white/5 blur-xl" />
+      <div className="text-[11px] uppercase tracking-wide text-white/40">{label}</div>
+      {loading ? (
+        <div className="mt-2 h-8 w-12 animate-pulse rounded bg-white/8" />
+      ) : (
+        <div
+          className={`depth-num mt-1 font-mono text-3xl font-semibold tracking-tight ${
+            accent ? "text-accent" : warn ? "text-amber-300" : "text-white"
+          }`}
+        >
+          {value}
+        </div>
+      )}
     </div>
   );
+}
+
+function SectionTitle({
+  icon,
+  title,
+  right,
+}: {
+  icon: ReactNode;
+  title: string;
+  right?: ReactNode;
+}) {
+  return (
+    <div className="mt-10 mb-4 flex items-center justify-between gap-4">
+      <h2 className="flex items-center gap-2 text-sm font-medium text-white/80">
+        <span className="text-accent">{icon}</span>
+        {title}
+      </h2>
+      {right}
+    </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className={`size-2.5 rounded-sm ${color}`} />
+      {label}
+    </span>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <p className="text-sm text-white/40">{text}</p>;
 }

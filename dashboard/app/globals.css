@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens (Glassmorphism 2.0 + light 3D, dark-tech)            */
+/* ------------------------------------------------------------------ */
+@theme {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+
+  --color-ink-950: #05070c;
+  --color-ink-900: #0a0e17;
+  --color-ink-800: #111726;
+
+  --color-accent: #34d399;      /* emerald — single accent, locked */
+  --color-accent-soft: #6ee7b7;
+  --color-cool: #38bdf8;        /* secondary cool tone for depth only */
+}
+
+:root {
+  color-scheme: dark;
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-strong: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+}
+
+html,
+body {
+  background-color: var(--color-ink-950);
+  color: #e8eef7;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------------ */
+/* Glass surfaces                                                     */
+/* ------------------------------------------------------------------ */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+    0 24px 48px -28px rgba(0, 0, 0, 0.75);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(26px) saturate(160%);
+  -webkit-backdrop-filter: blur(26px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 32px 60px -30px rgba(0, 0, 0, 0.8);
+}
+
+/* Subtle edge refraction highlight (top hairline) */
+.glass-edge::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light 3D — perspective tilt on hover (CSS only, GPU friendly)      */
+/* ------------------------------------------------------------------ */
+.tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.tilt:hover {
+  transform: perspective(1000px) rotateX(2.5deg) rotateY(-2.5deg) translateZ(6px);
+}
+
+/* Number depth */
+.depth-num {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ------------------------------------------------------------------ */
+/* Live indicator pulse (motivated: signals realtime connection)      */
+/* ------------------------------------------------------------------ */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
+  }
+}
+.live-dot {
+  animation: live-pulse 2.2s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbar                                                          */
+/* ------------------------------------------------------------------ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Accessibility fallbacks                                            */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-strong {
+    background: var(--color-ink-800);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt,
+  .tilt:hover {
+    transform: none;
+    transition: none;
+  }
+  .live-dot {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
