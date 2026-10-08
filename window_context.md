@@ -31,6 +31,14 @@
 - **Cobro internacional:** pasarela Merchant of Record (ej. Lemon Squeezy) para delegar impuestos (IVA/VAT) y medir MRR neto.
 - **Seguridad:** nunca hardcodear API keys ni exponer `service_role`; auditar firmas HMAC/SHA256 y sanitizar inputs.
 
+## Interfaz (Dashboard) — Stack y Dirección
+- **Framework:** Next.js 14 (App Router) + Tailwind CSS v4 + `@phosphor-icons/react`.
+- **Estética:** Glassmorphism 2.0 (paneles translúcidos `backdrop-filter` con bordes e highlight interior) + 3D ligero vía WebGL nativo (shader de aurora, sin librerías 3D pesadas) + tilt CSS en hover.
+- **Performance/Accesibilidad:** DPR ≤ 1.5, pausa al ocultar pestaña, fallback estático en `prefers-reduced-motion`, fondo sólido en `prefers-reduced-transparency`.
+- **Acento único:** esmeralda. Base off-black (no negro puro).
+- **Copy humanizado:** ver regla en `soul.md` → Humanización de la Interfaz.
+- **Deploy:** Vercel (Root Directory = `dashboard`).
+
 ## Current Execution Stack
 - Engine: OpenCode
 - External Search API: Brave Search API

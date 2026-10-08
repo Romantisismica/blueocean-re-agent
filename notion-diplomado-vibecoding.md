@@ -489,6 +489,29 @@ vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY production --type config --value "<
 vercel --prod --yes
 ```
 
+### 🎨 Diseño: Glassmorphism 2.0 + 3D ligero + lenguaje humano
+
+El dashboard no se deja "feo y técnico": se diseña con criterio y se explica solo.
+
+**Estética (Glassmorphism 2.0 + 3D ligero):**
+- **Paneles de vidrio:** `backdrop-filter: blur()` + borde `rgba(255,255,255,0.1)` + highlight interior (`inset 0 1px 0`). Base off-black (no negro puro).
+- **3D ligero vía WebGL nativo:** un shader de aurora lenta (esmeralda/teal/azul) como fondo. **Sin three.js** (que pesa ~150 kB): se usa WebGL crudo, ~2 kB de código.
+- **Tilt 3D en CSS:** `perspective() rotateX/rotateY` en hover, solo `transform` (GPU).
+- **Rendimiento/accesibilidad:** DPR ≤ 1.5, pausa al ocultar la pestaña, estático en `prefers-reduced-motion`, fondo sólido en `prefers-reduced-transparency`.
+- **Acento único** (esmeralda) y tipografía `Outfit` + `JetBrains Mono` (números en mono).
+
+**Lenguaje humano (lo más importante):**
+
+| Código interno | Se muestra como |
+| --- | --- |
+| `tier 1` | **Prioritario** (Sabaneta / Envigado) |
+| `tier 2` | **Referencia** (zonas vecinas) |
+| `DATA_COMPLETE` | **Info completa** |
+| `REQUIRES_CHATBOT_INTERACTION` | **Falta verificar** |
+| `scout_runs` | **Búsquedas realizadas** |
+
+Regla: **cada métrica y cada estado lleva una ayuda de una frase**. Si algo no se entiende de un vistazo, se reescribe. Un panel que no se entiende es un panel que no sirve.
+
 ### ⚠️ Lección clave
 Las variables `NEXT_PUBLIC_` se **exponen al navegador**. Solo va ahí la **anon key**, nunca la
 **service_role**. La CLI de Vercel lo detecta y pide `--type config`.

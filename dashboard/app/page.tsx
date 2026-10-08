@@ -6,11 +6,12 @@ import {
   Broadcast,
   Buildings,
   MapPin,
-  Stack,
+  MagnifyingGlass,
   WarningCircle,
   ArrowsClockwise,
   CurrencyCircleDollar,
-  Sparkle,
+  Lightbulb,
+  Info,
 } from "@phosphor-icons/react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -20,7 +21,6 @@ type Opp = {
   developer: string | null;
   zone: string | null;
   tier: number | null;
-  opportunity_type: string | null;
   status: string | null;
   url: string | null;
   last_seen_at: string;
@@ -40,6 +40,35 @@ type Ocean = { id: number; name: string; description: string | null; monthly_fee
 
 const ICON = { weight: "duotone" as const, size: 20 };
 
+// --- Traducción de la jerga a lenguaje humano -----------------------------
+const TIER_LABEL: Record<number, { short: string; long: string; hint: string }> = {
+  1: {
+    short: "Prioritario",
+    long: "Prioritario",
+    hint: "Está en Sabaneta o Envigado, tu zona principal.",
+  },
+  2: {
+    short: "Referencia",
+    long: "Zona parecida",
+    hint: "Está en una zona vecina; sirve para comparar precios e ideas.",
+  },
+};
+
+const STATUS_LABEL: Record<string, { text: string; hint: string }> = {
+  DATA_COMPLETE: { text: "Info completa", hint: "Ya tenemos constructora y datos del proyecto." },
+  REQUIRES_CHATBOT_INTERACTION: {
+    text: "Falta verificar",
+    hint: "Aún falta la constructora o los precios; hay que confirmarlos.",
+  },
+};
+
+function tierInfo(t: number | null) {
+  return TIER_LABEL[t ?? 2] ?? TIER_LABEL[2];
+}
+function statusInfo(s: string | null) {
+  return STATUS_LABEL[s ?? ""] ?? { text: "Por revisar", hint: "Estado pendiente de clasificar." };
+}
+
 export default function Page() {
   const [kpis, setKpis] = useState<Kpi | null>(null);
   const [opps, setOpps] = useState<Opp[]>([]);
@@ -49,6 +78,7 @@ export default function Page() {
   const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   async function load() {
     const [k, o, r, b] = await Promise.all([
@@ -86,78 +116,146 @@ export default function Page() {
 
   return (
     <div className="relative mx-auto max-w-[1200px] px-4 pb-16 pt-5 sm:px-6">
-      {/* Header */}
+      {/* Barra superior */}
       <header className="glass glass-edge sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl px-4 py-3">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-xl bg-accent/15 text-accent ring-1 ring-inset ring-white/10">
             <Waves {...ICON} size={22} />
           </span>
           <div className="leading-tight">
-            <h1 className="text-[15px] font-semibold tracking-tight">BlueOcean RE</h1>
-            <p className="text-xs text-white/45">Sabaneta &amp; Envigado · Océanos Azules</p>
+            <h1 className="text-[15px] font-semibold tracking-tight">Buscador de oportunidades</h1>
+            <p className="text-xs text-white/45">Sabaneta y Envigado · inmobiliario</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
-            onClick={load}
+            onClick={() => setShowHelp((v) => !v)}
             className="glass hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs text-white/70 transition hover:text-white active:translate-y-px sm:flex"
+          >
+            <Info size={14} weight="bold" />
+            ¿Cómo se lee?
+          </button>
+          <button
+            onClick={load}
+            className="glass hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs text-white/70 transition hover:text-white active:translate-y-px md:flex"
           >
             <ArrowsClockwise size={14} weight="bold" />
             Actualizar
           </button>
           <span
             className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs ring-1 ring-inset ${
-              live
-                ? "bg-accent/10 text-accent ring-accent/25"
-                : "bg-white/5 text-white/50 ring-white/10"
+              live ? "bg-accent/10 text-accent ring-accent/25" : "bg-white/5 text-white/50 ring-white/10"
             }`}
           >
             <span className={`size-2 rounded-full ${live ? "bg-accent live-dot" : "bg-white/40"}`} />
-            {live ? "Tiempo real" : "Conectando…"}
+            {live ? "En vivo" : "Conectando…"}
           </span>
         </div>
       </header>
 
-      {/* Intro */}
+      {/* Introducción en lenguaje simple */}
       <section className="mt-8 mb-6">
-        <h2 className="max-w-[22ch] text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">
-          Inteligencia de <span className="italic text-accent">océanos azules</span> inmobiliarios
+        <h2 className="max-w-[24ch] text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">
+          Detectamos proyectos inmobiliarios <span className="italic text-accent">antes que los demás</span>
         </h2>
-        <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-white/55">
-          Rastreo diario de proyectos sobre planos, clasificados por prioridad y con histórico
-          consultable. Los datos llegan desde Supabase y se actualizan en vivo.
+        <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-white/55">
+          Cada día buscamos en internet proyectos nuevos en Sabaneta y Envigado, los ordenamos por
+          importancia y guardamos su historial. Aquí ves el resumen y el detalle. Los datos se
+          actualizan solos.
         </p>
       </section>
+
+      {/* Panel de ayuda */}
+      {showHelp && (
+        <div className="glass mb-6 grid gap-3 rounded-2xl p-4 text-sm text-white/70 sm:grid-cols-2">
+          <HelpItem
+            icon={<Lightbulb size={16} weight="duotone" className="text-accent" />}
+            title="Prioritario"
+            body="Proyecto en Sabaneta o Envigado. Es lo que más te interesa revisar."
+          />
+          <HelpItem
+            icon={<Lightbulb size={16} weight="duotone" className="text-cool" />}
+            title="Referencia"
+            body="Proyecto en una zona vecina. Sirve para comparar precios y tomar ideas."
+          />
+          <HelpItem
+            icon={<Buildings size={16} weight="duotone" className="text-accent" />}
+            title="Info completa"
+            body="Ya sabemos la constructora y los datos del proyecto."
+          />
+          <HelpItem
+            icon={<WarningCircle size={16} weight="duotone" className="text-amber-300" />}
+            title="Falta verificar"
+            body="Todavía no sabemos la constructora o los precios. Hay que confirmarlos."
+          />
+        </div>
+      )}
 
       {error && (
         <div className="glass mb-6 flex items-start gap-3 rounded-2xl border-red-400/20 p-4 text-sm text-red-200/90">
           <WarningCircle size={20} weight="duotone" className="mt-0.5 shrink-0" />
           <div>
-            <strong className="font-medium">Error de conexión a Supabase.</strong>
-            <p className="text-red-200/70">{error}. Verifica las variables de entorno.</p>
+            <strong className="font-medium">No pudimos conectar con la base de datos.</strong>
+            <p className="text-red-200/70">{error}. Revisa las credenciales de Supabase.</p>
           </div>
         </div>
       )}
 
-      {/* KPIs */}
+      {/* Resumen */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiTile label="Oportunidades" value={kpis?.total_oportunidades ?? opps.length} loading={loading} />
-        <KpiTile label="Tier 1 · Core" value={kpis?.tier1 ?? "—"} accent loading={loading} />
-        <KpiTile label="Tier 2 · Look-a-like" value={kpis?.tier2 ?? "—"} loading={loading} />
-        <KpiTile label="Data completa" value={kpis?.completas ?? "—"} loading={loading} />
-        <KpiTile label="Requieren interacción" value={kpis?.requieren_interaccion ?? "—"} warn loading={loading} />
-        <KpiTile label="Zonas" value={kpis?.zonas ?? "—"} loading={loading} />
+        <KpiTile
+          label="Proyectos encontrados"
+          value={kpis?.total_oportunidades ?? opps.length}
+          hint="En total, desde el inicio"
+          loading={loading}
+        />
+        <KpiTile
+          label="Prioritarios"
+          value={kpis?.tier1 ?? "—"}
+          hint="En Sabaneta / Envigado"
+          accent
+          loading={loading}
+        />
+        <KpiTile
+          label="De referencia"
+          value={kpis?.tier2 ?? "—"}
+          hint="Zonas vecinas"
+          loading={loading}
+        />
+        <KpiTile
+          label="Con info completa"
+          value={kpis?.completas ?? "—"}
+          hint="Listos para analizar"
+          loading={loading}
+        />
+        <KpiTile
+          label="Falta verificar"
+          value={kpis?.requieren_interaccion ?? "—"}
+          hint="Necesitan más datos"
+          warn
+          loading={loading}
+        />
+        <KpiTile
+          label="Zonas cubiertas"
+          value={kpis?.zonas ?? "—"}
+          hint="Sectores distintos"
+          loading={loading}
+        />
       </section>
 
-      {/* Océanos */}
-      <SectionTitle icon={<Sparkle {...ICON} />} title="3 Océanos Azules en monitoreo" />
+      {/* Oportunidades de negocio */}
+      <SectionTitle
+        icon={<Lightbulb {...ICON} />}
+        title="Ideas de negocio en seguimiento"
+        subtitle="Productos que podrías lanzar aprovechando estos proyectos."
+      />
       <section className="grid gap-4 md:grid-cols-3">
         {oceans.map((o) => (
           <article key={o.id} className="glass tilt relative overflow-hidden rounded-2xl p-5">
             <div className="absolute -right-8 -top-8 size-28 rounded-full bg-accent/10 blur-2xl" />
             <div className="flex items-center gap-2 text-xs text-white/45">
-              <span className="font-mono">#{o.id}</span>
+              <span className="font-mono">Idea {o.id}</span>
               <span className="h-px flex-1 bg-white/10" />
             </div>
             <h3 className="mt-3 text-[15px] font-semibold leading-snug">{o.name}</h3>
@@ -166,6 +264,7 @@ export default function Page() {
               <div className="flex items-center gap-2 text-white/75">
                 <CurrencyCircleDollar size={15} weight="duotone" className="text-accent" />
                 <span className="font-mono">{o.monthly_fee}</span>
+                <span className="text-white/40">al mes</span>
               </div>
               <div className="flex items-center gap-2 text-white/55">
                 <Broadcast size={15} weight="duotone" />
@@ -174,14 +273,18 @@ export default function Page() {
             </div>
           </article>
         ))}
-        {oceans.length === 0 && !loading && <EmptyState text="Sin catálogo. Ejecuta seed.sql." />}
+        {oceans.length === 0 && !loading && <EmptyState text="Aún no hay ideas cargadas." />}
       </section>
 
-      {/* Corridas */}
-      <SectionTitle icon={<Stack {...ICON} />} title="Corridas del scout" />
+      {/* Búsquedas realizadas */}
+      <SectionTitle
+        icon={<MagnifyingGlass {...ICON} />}
+        title="Búsquedas realizadas"
+        subtitle="Cuántos proyectos encontró el buscador en cada ronda."
+      />
       <section className="glass rounded-2xl p-5">
         {runs.length === 0 ? (
-          <EmptyState text="Sin ejecuciones registradas." />
+          <EmptyState text="Todavía no se ha hecho ninguna búsqueda." />
         ) : (
           <div className="flex h-28 items-end gap-2">
             {runs
@@ -190,7 +293,7 @@ export default function Page() {
               .map((r) => (
                 <div
                   key={r.id}
-                  title={`${new Date(r.ran_at).toLocaleString()} · ${r.total} hallazgos`}
+                  title={`${new Date(r.ran_at).toLocaleString()} · ${r.total} encontrados`}
                   className="group flex flex-1 flex-col items-stretch justify-end gap-0.5"
                 >
                   <div
@@ -205,19 +308,20 @@ export default function Page() {
               ))}
           </div>
         )}
-        <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-3 text-xs text-white/45">
-          <Legend color="bg-accent" label="Tier 1" />
-          <Legend color="bg-cool" label="Tier 2" />
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-3 text-xs text-white/45">
+          <Legend color="bg-accent" label="Prioritarios" />
+          <Legend color="bg-cool" label="De referencia" />
           <span className="ml-auto font-mono">
-            {runs.reduce((a, r) => a + (r.total || 0), 0)} hallazgos acumulados
+            {runs.reduce((a, r) => a + (r.total || 0), 0)} encontrados en total
           </span>
         </div>
       </section>
 
-      {/* Oportunidades */}
+      {/* Tabla de proyectos */}
       <SectionTitle
         icon={<Buildings {...ICON} />}
-        title="Oportunidades"
+        title="Proyectos encontrados"
+        subtitle="Cada fila es un proyecto. Haz clic en el nombre para abrir su página."
         right={
           <div className="glass flex gap-1 rounded-full p-1">
             {(["all", "1", "2"] as const).map((f) => (
@@ -228,7 +332,7 @@ export default function Page() {
                   filter === f ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
                 }`}
               >
-                {f === "all" ? "Todos" : `Tier ${f}`}
+                {f === "all" ? "Todos" : f === "1" ? "Prioritarios" : "Referencia"}
               </button>
             ))}
           </div>
@@ -240,10 +344,10 @@ export default function Page() {
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-white/40">
                 <th className="px-5 py-3 font-medium">Proyecto</th>
-                <th className="px-5 py-3 font-medium">Zona</th>
-                <th className="px-5 py-3 font-medium">Tier</th>
-                <th className="px-5 py-3 font-medium">Estado</th>
-                <th className="px-5 py-3 font-medium">Detectado</th>
+                <th className="px-5 py-3 font-medium">Dónde</th>
+                <th className="px-5 py-3 font-medium">Prioridad</th>
+                <th className="px-5 py-3 font-medium">Información</th>
+                <th className="px-5 py-3 font-medium">Encontrado</th>
               </tr>
             </thead>
             <tbody>
@@ -258,61 +362,73 @@ export default function Page() {
                   </tr>
                 ))}
               {!loading &&
-                filtered.map((o) => (
-                  <tr
-                    key={o.id}
-                    className="border-t border-white/5 transition hover:bg-white/[0.035]"
-                  >
-                    <td className="max-w-[320px] px-5 py-3.5">
-                      {o.url ? (
-                        <a
-                          href={o.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-medium text-white/90 underline-offset-4 hover:text-accent hover:underline"
+                filtered.map((o) => {
+                  const t = tierInfo(o.tier);
+                  const s = statusInfo(o.status);
+                  return (
+                    <tr key={o.id} className="border-t border-white/5 transition hover:bg-white/[0.035]">
+                      <td className="max-w-[320px] px-5 py-3.5">
+                        {o.url ? (
+                          <a
+                            href={o.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-white/90 underline-offset-4 hover:text-accent hover:underline"
+                          >
+                            {o.name}
+                          </a>
+                        ) : (
+                          <span className="font-medium text-white/90">{o.name}</span>
+                        )}
+                        <div className="mt-0.5 text-xs text-white/40">
+                          {o.developer && o.developer !== "Por identificar"
+                            ? o.developer
+                            : "Constructora sin confirmar"}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="inline-flex items-center gap-1.5 text-white/70">
+                          <MapPin size={14} weight="duotone" />
+                          {o.zone ?? "Sin ubicación"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          title={t.hint}
+                          className={`inline-flex cursor-help rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                            o.tier === 1
+                              ? "bg-accent/10 text-accent ring-accent/25"
+                              : "bg-cool/10 text-cool ring-cool/25"
+                          }`}
                         >
-                          {o.name}
-                        </a>
-                      ) : (
-                        <span className="font-medium text-white/90">{o.name}</span>
-                      )}
-                      <div className="mt-0.5 text-xs text-white/40">{o.developer ?? "Por identificar"}</div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-1.5 text-white/70">
-                        <MapPin size={14} weight="duotone" />
-                        {o.zone ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                          o.tier === 1
-                            ? "bg-accent/10 text-accent ring-accent/25"
-                            : "bg-cool/10 text-cool ring-cool/25"
-                        }`}
-                      >
-                        T{o.tier ?? "?"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`text-xs ${
-                          o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"
-                        }`}
-                      >
-                        {o.status === "DATA_COMPLETE" ? "Completo" : "Requiere interacción"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 font-mono text-xs text-white/40">
-                      {new Date(o.last_seen_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                          {t.short}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span
+                          title={s.hint}
+                          className={`cursor-help text-xs ${
+                            o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"
+                          }`}
+                        >
+                          {s.text}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-xs text-white/40">
+                        {new Date(o.last_seen_at).toLocaleDateString("es-CO", {
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  );
+                })}
               {!loading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-white/45">
-                    <EmptyState text="Sin oportunidades. Ejecuta el scout." />
+                  <td colSpan={5} className="px-5 py-12 text-center">
+                    <EmptyState text="Todavía no hay proyectos. Ejecuta una búsqueda." />
                   </td>
                 </tr>
               )}
@@ -322,7 +438,7 @@ export default function Page() {
       </section>
 
       <footer className="mt-10 text-center text-xs text-white/30">
-        BlueOcean RE Agent · datos desde Supabase · actualización en vivo vía Realtime
+        Se actualiza solo cuando llegan datos nuevos · información desde tu base de datos
       </footer>
     </div>
   );
@@ -333,12 +449,14 @@ export default function Page() {
 function KpiTile({
   label,
   value,
+  hint,
   accent,
   warn,
   loading,
 }: {
   label: string;
   value: number | string;
+  hint?: string;
   accent?: boolean;
   warn?: boolean;
   loading?: boolean;
@@ -346,7 +464,7 @@ function KpiTile({
   return (
     <div className="glass tilt relative overflow-hidden rounded-2xl p-4">
       <div className="absolute -right-6 -top-6 size-16 rounded-full bg-white/5 blur-xl" />
-      <div className="text-[11px] uppercase tracking-wide text-white/40">{label}</div>
+      <div className="text-[11px] font-medium leading-tight text-white/50">{label}</div>
       {loading ? (
         <div className="mt-2 h-8 w-12 animate-pulse rounded bg-white/8" />
       ) : (
@@ -358,6 +476,7 @@ function KpiTile({
           {value}
         </div>
       )}
+      {hint && <div className="mt-0.5 text-[10px] leading-tight text-white/35">{hint}</div>}
     </div>
   );
 }
@@ -365,18 +484,23 @@ function KpiTile({
 function SectionTitle({
   icon,
   title,
+  subtitle,
   right,
 }: {
   icon: ReactNode;
   title: string;
+  subtitle?: string;
   right?: ReactNode;
 }) {
   return (
-    <div className="mt-10 mb-4 flex items-center justify-between gap-4">
-      <h2 className="flex items-center gap-2 text-sm font-medium text-white/80">
-        <span className="text-accent">{icon}</span>
-        {title}
-      </h2>
+    <div className="mt-10 mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="flex items-center gap-2 text-sm font-medium text-white/85">
+          <span className="text-accent">{icon}</span>
+          {title}
+        </h2>
+        {subtitle && <p className="mt-1 text-xs text-white/40">{subtitle}</p>}
+      </div>
       {right}
     </div>
   );
@@ -388,6 +512,18 @@ function Legend({ color, label }: { color: string; label: string }) {
       <span className={`size-2.5 rounded-sm ${color}`} />
       {label}
     </span>
+  );
+}
+
+function HelpItem({ icon, title, body }: { icon: ReactNode; title: string; body: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 shrink-0">{icon}</span>
+      <div>
+        <div className="text-white/85">{title}</div>
+        <div className="text-xs text-white/50">{body}</div>
+      </div>
+    </div>
   );
 }
 
