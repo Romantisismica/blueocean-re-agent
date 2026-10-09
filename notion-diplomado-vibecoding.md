@@ -519,6 +519,17 @@ Las variables `NEXT_PUBLIC_` se **exponen al navegador**. Solo va ahí la **anon
 ### ✅ Verificación
 Abres la URL de Vercel y ves KPIs y tabla. Al insertar una fila en Supabase, se actualiza solo.
 
+### 🗂️ El catálogo (con imágenes reales)
+
+En vez de un gráfico abstracto, el dashboard muestra un **catálogo visual** de cada proyecto:
+
+- **Imagen de portada real:** el scout extrae el `og:image` de la web del proyecto (`fetch_og_image`) y lo guarda en la columna `image_url`. Si no hay imagen, se muestra un degradado con las iniciales.
+- **Dos vistas:** catálogo (tarjetas) y tabla (para escanear rápido), con un botón para alternar.
+- **Cada tarjeta explica:** nombre, constructora, zona, prioridad, estado de la información y descripción corta.
+- **Migración 0002:** añade `image_url` y `description` a `opportunities` y actualiza la RPC de ingesta.
+
+> Regla: si una sección no se entiende o no aporta, se **reemplaza** por algo que sí (aquí, el gráfico de barras pasó a ser un catálogo).
+
 ---
 
 ## Módulo 9 — Los Conectores: MCPs

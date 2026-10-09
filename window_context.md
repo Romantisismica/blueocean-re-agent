@@ -17,6 +17,8 @@
 - **Tipologías de Inmuebles:** (Áreas, habitaciones, parqueaderos)
 - **Propuesta de Valor del Desarrollador:**
 - **Brecha / Océano Azul Detectado:**
+- **Imagen de portada (og:image):** extraída de la web del proyecto.
+- **Descripción corta:** snippet del resultado.
 - **Estatus de Información:** [DATA_COMPLETE | REQUIRES_CHATBOT_INTERACTION]
 
 ## 3 Océanos Azules en Monitoreo (ver notion-blue-ocean-swarm.md)
