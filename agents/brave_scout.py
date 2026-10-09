@@ -131,6 +131,38 @@ def check_data_completeness(text: str) -> bool:
     return has_area and has_price
 
 
+def fetch_og_image(url: str):
+    """Extrae la imagen de portada (og:image / twitter:image) de la web del proyecto."""
+    try:
+        r = requests.get(
+            url,
+            timeout=6,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+                )
+            },
+        )
+        if r.status_code != 200:
+            return None
+        html = r.text
+        for pat in (
+            r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
+            r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']',
+            r'<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']',
+        ):
+            m = re.search(pat, html, re.IGNORECASE)
+            if m:
+                img = m.group(1).strip()
+                if img.startswith("//"):
+                    img = "https:" + img
+                return img
+        return None
+    except Exception:
+        return None
+
+
 # ---------------------------------------------------------------------------
 # BRAVE
 # ---------------------------------------------------------------------------
@@ -174,6 +206,7 @@ def process_opportunities_v2() -> list:
             tier, opp_type, zone = classify_location(full_txt)
             developer = extract_developer(full_txt)
             complete = check_data_completeness(full_txt)
+            image_url = fetch_og_image(url)
 
             clean_opportunities.append({
                 "id": f"RE-SCOUT-{counter:03d}",
@@ -183,6 +216,8 @@ def process_opportunities_v2() -> list:
                 "tier": tier,
                 "opportunity_type": opp_type,
                 "url": url,
+                "image_url": image_url,
+                "description": snippet,
                 "launch_date": None,
                 "typologies": None,
                 "value_proposition": None,

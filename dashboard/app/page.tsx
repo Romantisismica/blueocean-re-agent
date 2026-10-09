@@ -3,15 +3,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Waves,
-  Broadcast,
   Buildings,
   MapPin,
-  MagnifyingGlass,
   WarningCircle,
   ArrowsClockwise,
   CurrencyCircleDollar,
   Lightbulb,
   Info,
+  SquaresFour,
+  ListBullets,
+  ArrowSquareOut,
+  Clock,
+  Tag,
 } from "@phosphor-icons/react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -23,6 +26,8 @@ type Opp = {
   tier: number | null;
   status: string | null;
   url: string | null;
+  image_url: string | null;
+  description: string | null;
   last_seen_at: string;
 };
 
@@ -40,18 +45,9 @@ type Ocean = { id: number; name: string; description: string | null; monthly_fee
 
 const ICON = { weight: "duotone" as const, size: 20 };
 
-// --- Traducción de la jerga a lenguaje humano -----------------------------
-const TIER_LABEL: Record<number, { short: string; long: string; hint: string }> = {
-  1: {
-    short: "Prioritario",
-    long: "Prioritario",
-    hint: "Está en Sabaneta o Envigado, tu zona principal.",
-  },
-  2: {
-    short: "Referencia",
-    long: "Zona parecida",
-    hint: "Está en una zona vecina; sirve para comparar precios e ideas.",
-  },
+const TIER_LABEL: Record<number, { short: string; hint: string }> = {
+  1: { short: "Prioritario", hint: "Está en Sabaneta o Envigado, tu zona principal." },
+  2: { short: "Referencia", hint: "Está en una zona vecina; sirve para comparar precios e ideas." },
 };
 
 const STATUS_LABEL: Record<string, { text: string; hint: string }> = {
@@ -68,6 +64,14 @@ function tierInfo(t: number | null) {
 function statusInfo(s: string | null) {
   return STATUS_LABEL[s ?? ""] ?? { text: "Por revisar", hint: "Estado pendiente de clasificar." };
 }
+function haceCuanto(iso: string) {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (min < 1) return "hace un momento";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return `hace ${Math.round(h / 24)} días`;
+}
 
 export default function Page() {
   const [kpis, setKpis] = useState<Kpi | null>(null);
@@ -75,6 +79,7 @@ export default function Page() {
   const [runs, setRuns] = useState<Run[]>([]);
   const [oceans, setOceans] = useState<Ocean[]>([]);
   const [filter, setFilter] = useState<"all" | "1" | "2">("all");
+  const [view, setView] = useState<"catalogo" | "tabla">("catalogo");
   const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +119,8 @@ export default function Page() {
     [opps, filter]
   );
 
+  const lastRun = runs[0];
+
   return (
     <div className="relative mx-auto max-w-[1200px] px-4 pb-16 pt-5 sm:px-6">
       {/* Barra superior */}
@@ -123,8 +130,10 @@ export default function Page() {
             <Waves {...ICON} size={22} />
           </span>
           <div className="leading-tight">
-            <h1 className="text-[15px] font-semibold tracking-tight">Buscador de oportunidades</h1>
-            <p className="text-xs text-white/45">Sabaneta y Envigado · inmobiliario</p>
+            <h1 className="text-[15px] font-semibold tracking-tight">Catálogo de proyectos</h1>
+            <p className="text-xs text-white/45">
+              {lastRun ? `Última búsqueda ${haceCuanto(lastRun.ran_at)}` : "Sabaneta y Envigado"}
+            </p>
           </div>
         </div>
 
@@ -154,30 +163,30 @@ export default function Page() {
         </div>
       </header>
 
-      {/* Introducción en lenguaje simple */}
+      {/* Introducción */}
       <section className="mt-8 mb-6">
         <h2 className="max-w-[24ch] text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">
-          Detectamos proyectos inmobiliarios <span className="italic text-accent">antes que los demás</span>
+          Todos los proyectos que <span className="italic text-accent">encontramos para ti</span>
         </h2>
         <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-white/55">
-          Cada día buscamos en internet proyectos nuevos en Sabaneta y Envigado, los ordenamos por
-          importancia y guardamos su historial. Aquí ves el resumen y el detalle. Los datos se
-          actualizan solos.
+          Cada tarjeta es un proyecto inmobiliario detectado en Sabaneta y Envigado (o en zonas
+          vecinas). Puedes ver su imagen, quién lo construye, dónde está y qué tan completo está el
+          dato. Haz clic en el nombre para abrir la página original.
         </p>
       </section>
 
-      {/* Panel de ayuda */}
+      {/* Ayuda / explicaciones */}
       {showHelp && (
-        <div className="glass mb-6 grid gap-3 rounded-2xl p-4 text-sm text-white/70 sm:grid-cols-2">
+        <div className="glass mb-6 grid gap-4 rounded-2xl p-5 text-sm text-white/70 sm:grid-cols-2">
           <HelpItem
             icon={<Lightbulb size={16} weight="duotone" className="text-accent" />}
             title="Prioritario"
-            body="Proyecto en Sabaneta o Envigado. Es lo que más te interesa revisar."
+            body="Proyecto en Sabaneta o Envigado. Es lo que más te interesa revisar primero."
           />
           <HelpItem
             icon={<Lightbulb size={16} weight="duotone" className="text-cool" />}
             title="Referencia"
-            body="Proyecto en una zona vecina. Sirve para comparar precios y tomar ideas."
+            body="Proyecto en una zona vecina. Sirve para comparar precios, amenidades e ideas."
           />
           <HelpItem
             icon={<Buildings size={16} weight="duotone" className="text-accent" />}
@@ -188,6 +197,16 @@ export default function Page() {
             icon={<WarningCircle size={16} weight="duotone" className="text-amber-300" />}
             title="Falta verificar"
             body="Todavía no sabemos la constructora o los precios. Hay que confirmarlos."
+          />
+          <HelpItem
+            icon={<Tag size={16} weight="duotone" className="text-accent" />}
+            title="Idea de negocio"
+            body="Producto o servicio que podrías lanzar aprovechando estos proyectos."
+          />
+          <HelpItem
+            icon={<Clock size={16} weight="duotone" className="text-cool" />}
+            title="Encontrado"
+            body="Cuándo el buscador vio por última vez este proyecto."
           />
         </div>
       )}
@@ -204,47 +223,15 @@ export default function Page() {
 
       {/* Resumen */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiTile
-          label="Proyectos encontrados"
-          value={kpis?.total_oportunidades ?? opps.length}
-          hint="En total, desde el inicio"
-          loading={loading}
-        />
-        <KpiTile
-          label="Prioritarios"
-          value={kpis?.tier1 ?? "—"}
-          hint="En Sabaneta / Envigado"
-          accent
-          loading={loading}
-        />
-        <KpiTile
-          label="De referencia"
-          value={kpis?.tier2 ?? "—"}
-          hint="Zonas vecinas"
-          loading={loading}
-        />
-        <KpiTile
-          label="Con info completa"
-          value={kpis?.completas ?? "—"}
-          hint="Listos para analizar"
-          loading={loading}
-        />
-        <KpiTile
-          label="Falta verificar"
-          value={kpis?.requieren_interaccion ?? "—"}
-          hint="Necesitan más datos"
-          warn
-          loading={loading}
-        />
-        <KpiTile
-          label="Zonas cubiertas"
-          value={kpis?.zonas ?? "—"}
-          hint="Sectores distintos"
-          loading={loading}
-        />
+        <KpiTile label="Proyectos" value={kpis?.total_oportunidades ?? opps.length} hint="En el catálogo" loading={loading} />
+        <KpiTile label="Prioritarios" value={kpis?.tier1 ?? "—"} hint="Sabaneta / Envigado" accent loading={loading} />
+        <KpiTile label="De referencia" value={kpis?.tier2 ?? "—"} hint="Zonas vecinas" loading={loading} />
+        <KpiTile label="Con info completa" value={kpis?.completas ?? "—"} hint="Listos para analizar" loading={loading} />
+        <KpiTile label="Falta verificar" value={kpis?.requieren_interaccion ?? "—"} hint="Necesitan más datos" warn loading={loading} />
+        <KpiTile label="Zonas" value={kpis?.zonas ?? "—"} hint="Sectores distintos" loading={loading} />
       </section>
 
-      {/* Oportunidades de negocio */}
+      {/* Ideas de negocio */}
       <SectionTitle
         icon={<Lightbulb {...ICON} />}
         title="Ideas de negocio en seguimiento"
@@ -267,7 +254,7 @@ export default function Page() {
                 <span className="text-white/40">al mes</span>
               </div>
               <div className="flex items-center gap-2 text-white/55">
-                <Broadcast size={15} weight="duotone" />
+                <Tag size={15} weight="duotone" />
                 <span className="font-mono">{o.variable_fee}</span>
               </div>
             </div>
@@ -276,166 +263,69 @@ export default function Page() {
         {oceans.length === 0 && !loading && <EmptyState text="Aún no hay ideas cargadas." />}
       </section>
 
-      {/* Búsquedas realizadas */}
-      <SectionTitle
-        icon={<MagnifyingGlass {...ICON} />}
-        title="Búsquedas realizadas"
-        subtitle="Cuántos proyectos encontró el buscador en cada ronda."
-      />
-      <section className="glass rounded-2xl p-5">
-        {runs.length === 0 ? (
-          <EmptyState text="Todavía no se ha hecho ninguna búsqueda." />
-        ) : (
-          <div className="flex h-28 items-end gap-2">
-            {runs
-              .slice()
-              .reverse()
-              .map((r) => (
-                <div
-                  key={r.id}
-                  title={`${new Date(r.ran_at).toLocaleString()} · ${r.total} encontrados`}
-                  className="group flex flex-1 flex-col items-stretch justify-end gap-0.5"
-                >
-                  <div
-                    className="rounded-t bg-cool/70 transition group-hover:bg-cool"
-                    style={{ height: Math.max(3, (r.tier2_count || 0) * 5) }}
-                  />
-                  <div
-                    className="rounded-t bg-accent/80 transition group-hover:bg-accent"
-                    style={{ height: Math.max(4, (r.tier1_count || 0) * 5) }}
-                  />
-                </div>
-              ))}
-          </div>
-        )}
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-3 text-xs text-white/45">
-          <Legend color="bg-accent" label="Prioritarios" />
-          <Legend color="bg-cool" label="De referencia" />
-          <span className="ml-auto font-mono">
-            {runs.reduce((a, r) => a + (r.total || 0), 0)} encontrados en total
-          </span>
-        </div>
-      </section>
-
-      {/* Tabla de proyectos */}
+      {/* Catálogo */}
       <SectionTitle
         icon={<Buildings {...ICON} />}
-        title="Proyectos encontrados"
-        subtitle="Cada fila es un proyecto. Haz clic en el nombre para abrir su página."
+        title="Catálogo de proyectos"
+        subtitle="Cada proyecto indexado con su imagen, constructora y ubicación."
         right={
-          <div className="glass flex gap-1 rounded-full p-1">
-            {(["all", "1", "2"] as const).map((f) => (
+          <div className="flex items-center gap-2">
+            <div className="glass flex gap-1 rounded-full p-1">
+              {(["all", "1", "2"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`rounded-full px-3 py-1 text-xs transition ${
+                    filter === f ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
+                  }`}
+                >
+                  {f === "all" ? "Todos" : f === "1" ? "Prioritarios" : "Referencia"}
+                </button>
+              ))}
+            </div>
+            <div className="glass hidden gap-1 rounded-full p-1 sm:flex">
               <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-full px-3 py-1 text-xs transition ${
-                  filter === f ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
+                onClick={() => setView("catalogo")}
+                title="Ver como catálogo"
+                className={`grid size-7 place-items-center rounded-full transition ${
+                  view === "catalogo" ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
                 }`}
               >
-                {f === "all" ? "Todos" : f === "1" ? "Prioritarios" : "Referencia"}
+                <SquaresFour size={15} weight="bold" />
               </button>
-            ))}
+              <button
+                onClick={() => setView("tabla")}
+                title="Ver como tabla"
+                className={`grid size-7 place-items-center rounded-full transition ${
+                  view === "tabla" ? "bg-white/12 text-white" : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                <ListBullets size={15} weight="bold" />
+              </button>
+            </div>
           </div>
         }
       />
-      <section className="glass overflow-hidden rounded-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-white/40">
-                <th className="px-5 py-3 font-medium">Proyecto</th>
-                <th className="px-5 py-3 font-medium">Dónde</th>
-                <th className="px-5 py-3 font-medium">Prioridad</th>
-                <th className="px-5 py-3 font-medium">Información</th>
-                <th className="px-5 py-3 font-medium">Encontrado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading &&
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-t border-white/5">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <td key={j} className="px-5 py-3.5">
-                        <div className="h-3 w-24 animate-pulse rounded bg-white/8" />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              {!loading &&
-                filtered.map((o) => {
-                  const t = tierInfo(o.tier);
-                  const s = statusInfo(o.status);
-                  return (
-                    <tr key={o.id} className="border-t border-white/5 transition hover:bg-white/[0.035]">
-                      <td className="max-w-[320px] px-5 py-3.5">
-                        {o.url ? (
-                          <a
-                            href={o.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-white/90 underline-offset-4 hover:text-accent hover:underline"
-                          >
-                            {o.name}
-                          </a>
-                        ) : (
-                          <span className="font-medium text-white/90">{o.name}</span>
-                        )}
-                        <div className="mt-0.5 text-xs text-white/40">
-                          {o.developer && o.developer !== "Por identificar"
-                            ? o.developer
-                            : "Constructora sin confirmar"}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className="inline-flex items-center gap-1.5 text-white/70">
-                          <MapPin size={14} weight="duotone" />
-                          {o.zone ?? "Sin ubicación"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          title={t.hint}
-                          className={`inline-flex cursor-help rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                            o.tier === 1
-                              ? "bg-accent/10 text-accent ring-accent/25"
-                              : "bg-cool/10 text-cool ring-cool/25"
-                          }`}
-                        >
-                          {t.short}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          title={s.hint}
-                          className={`cursor-help text-xs ${
-                            o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"
-                          }`}
-                        >
-                          {s.text}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 font-mono text-xs text-white/40">
-                        {new Date(o.last_seen_at).toLocaleDateString("es-CO", {
-                          day: "2-digit",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </td>
-                    </tr>
-                  );
-                })}
-              {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center">
-                    <EmptyState text="Todavía no hay proyectos. Ejecuta una búsqueda." />
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="glass h-64 animate-pulse rounded-2xl" />
+          ))}
         </div>
-      </section>
+      ) : filtered.length === 0 ? (
+        <div className="glass rounded-2xl p-10 text-center">
+          <EmptyState text="Todavía no hay proyectos en el catálogo. Ejecuta una búsqueda." />
+        </div>
+      ) : view === "catalogo" ? (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((o) => (
+            <ProjectCard key={o.id} o={o} />
+          ))}
+        </section>
+      ) : (
+        <ProjectsTable rows={filtered} />
+      )}
 
       <footer className="mt-10 text-center text-xs text-white/30">
         Se actualiza solo cuando llegan datos nuevos · información desde tu base de datos
@@ -445,6 +335,167 @@ export default function Page() {
 }
 
 /* ------------------------------------------------------------------ */
+
+function ProjectCard({ o }: { o: Opp }) {
+  const t = tierInfo(o.tier);
+  const s = statusInfo(o.status);
+  return (
+    <article className="glass tilt group relative flex flex-col overflow-hidden rounded-2xl">
+      <div className="relative aspect-[16/10] overflow-hidden">
+        <ProjectImage src={o.image_url} name={o.name} tier={o.tier} />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-transparent to-transparent" />
+        <span
+          title={t.hint}
+          className={`absolute left-3 top-3 inline-flex cursor-help rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset backdrop-blur ${
+            o.tier === 1
+              ? "bg-accent/20 text-accent ring-accent/30"
+              : "bg-cool/20 text-cool ring-cool/30"
+          }`}
+        >
+          {t.short}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-[15px] font-semibold leading-snug text-white/95">{o.name}</h3>
+          {o.url && (
+            <a
+              href={o.url}
+              target="_blank"
+              rel="noreferrer"
+              title="Abrir la página del proyecto"
+              className="shrink-0 text-white/40 transition hover:text-accent"
+            >
+              <ArrowSquareOut size={18} weight="bold" />
+            </a>
+          )}
+        </div>
+
+        <p className="mt-1 text-xs text-white/50">
+          {o.developer && o.developer !== "Por identificar" ? o.developer : "Constructora sin confirmar"}
+        </p>
+
+        {o.description && (
+          <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-white/45">{o.description}</p>
+        )}
+
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-3 text-xs">
+          <span className="inline-flex items-center gap-1.5 text-white/60">
+            <MapPin size={14} weight="duotone" />
+            {o.zone ?? "Sin ubicación"}
+          </span>
+          <span
+            title={s.hint}
+            className={`cursor-help ${o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"}`}
+          >
+            {s.text}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ProjectImage({ src, name, tier }: { src: string | null; name: string; tier: number | null }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+
+  if (!src || failed) {
+    return (
+      <div
+        className={`grid h-full w-full place-items-center ${
+          tier === 1
+            ? "bg-gradient-to-br from-accent/25 via-ink-800 to-ink-900"
+            : "bg-gradient-to-br from-cool/20 via-ink-800 to-ink-900"
+        }`}
+      >
+        <span className="text-3xl font-semibold tracking-tight text-white/70">{initials}</span>
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={name}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+    />
+  );
+}
+
+function ProjectsTable({ rows }: { rows: Opp[] }) {
+  return (
+    <section className="glass overflow-hidden rounded-2xl">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase tracking-wide text-white/40">
+              <th className="px-5 py-3 font-medium">Proyecto</th>
+              <th className="px-5 py-3 font-medium">Dónde</th>
+              <th className="px-5 py-3 font-medium">Prioridad</th>
+              <th className="px-5 py-3 font-medium">Información</th>
+              <th className="px-5 py-3 font-medium">Encontrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((o) => {
+              const t = tierInfo(o.tier);
+              const s = statusInfo(o.status);
+              return (
+                <tr key={o.id} className="border-t border-white/5 transition hover:bg-white/[0.035]">
+                  <td className="max-w-[320px] px-5 py-3.5">
+                    {o.url ? (
+                      <a href={o.url} target="_blank" rel="noreferrer" className="font-medium text-white/90 underline-offset-4 hover:text-accent hover:underline">
+                        {o.name}
+                      </a>
+                    ) : (
+                      <span className="font-medium text-white/90">{o.name}</span>
+                    )}
+                    <div className="mt-0.5 text-xs text-white/40">
+                      {o.developer && o.developer !== "Por identificar" ? o.developer : "Constructora sin confirmar"}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="inline-flex items-center gap-1.5 text-white/70">
+                      <MapPin size={14} weight="duotone" />
+                      {o.zone ?? "Sin ubicación"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span
+                      title={t.hint}
+                      className={`inline-flex cursor-help rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                        o.tier === 1 ? "bg-accent/10 text-accent ring-accent/25" : "bg-cool/10 text-cool ring-cool/25"
+                      }`}
+                    >
+                      {t.short}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span title={s.hint} className={`cursor-help text-xs ${o.status === "DATA_COMPLETE" ? "text-accent" : "text-amber-300/90"}`}>
+                      {s.text}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5 font-mono text-xs text-white/40">
+                    {new Date(o.last_seen_at).toLocaleDateString("es-CO", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
 
 function KpiTile({
   label,
@@ -468,11 +519,7 @@ function KpiTile({
       {loading ? (
         <div className="mt-2 h-8 w-12 animate-pulse rounded bg-white/8" />
       ) : (
-        <div
-          className={`depth-num mt-1 font-mono text-3xl font-semibold tracking-tight ${
-            accent ? "text-accent" : warn ? "text-amber-300" : "text-white"
-          }`}
-        >
+        <div className={`depth-num mt-1 font-mono text-3xl font-semibold tracking-tight ${accent ? "text-accent" : warn ? "text-amber-300" : "text-white"}`}>
           {value}
         </div>
       )}
@@ -503,15 +550,6 @@ function SectionTitle({
       </div>
       {right}
     </div>
-  );
-}
-
-function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className={`size-2.5 rounded-sm ${color}`} />
-      {label}
-    </span>
   );
 }
 
